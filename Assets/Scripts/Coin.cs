@@ -1,21 +1,25 @@
 using UnityEngine;
 
-/// <summary>
-/// Moeda coletável em 3D. Precisa de um Collider marcado como "Is Trigger"
-/// (ex: SphereCollider ou BoxCollider) e um Rigidbody com "Is Kinematic" marcado
-/// (só pra o OnTriggerEnter funcionar sem precisar de física real na moeda).
-/// Ao ser tocada por uma bolinha, aplica o efeito e se destrói.
-/// </summary>
 [RequireComponent(typeof(Collider))]
 public class Coin : MonoBehaviour
 {
+    [Tooltip("ID único para cada moeda da fase (Ex: F1_Coin_01)")]
+    public string coinID;
+
+    private void Start()
+    {
+        if (LevelManager.Instance != null && LevelManager.Instance.IsCoinCollected(coinID))
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        BolinhaController bolinha = other.GetComponent<BolinhaController>();
-        if (bolinha == null) return;
-
-        bolinha.ColetarMoeda();
-        CoinSpawner.Instance?.NotificarMoedaColetada(this);
-        Destroy(gameObject);
+        if (other.CompareTag("Player"))
+        {
+            LevelManager.Instance?.CollectCoin(coinID);
+            Destroy(gameObject);
+        }
     }
 }
