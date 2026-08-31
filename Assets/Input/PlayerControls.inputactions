@@ -7,13 +7,22 @@
             "id": "4e2f00e8-4b81-4dbd-91aa-5e17e873ca8f",
             "actions": [
                 {
-                    "name": "Move",
+                    "name": "OnMove",
                     "type": "Value",
                     "id": "d2ea86eb-88b5-4315-8bd5-e9c2b6b20c7f",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "OnJump",
+                    "type": "Button",
+                    "id": "d6259e3c-5a1a-4d0f-a32c-d3bf6db7082f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -24,7 +33,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "OnMove",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -35,7 +44,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "OnMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -46,7 +55,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "OnMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -57,7 +66,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "OnMove",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -68,9 +77,20 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "OnMove",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "39c715a5-717c-44a4-8160-ce599f531283",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OnJump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

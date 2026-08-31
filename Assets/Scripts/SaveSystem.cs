@@ -21,27 +21,20 @@ public class SaveSystem : MonoBehaviour
     {
         string json = JsonUtility.ToJson(data);
         string encrypted = EncryptDecrypt(json);
+        
+        // Salva ESTRITAMENTE no slotIndex passado (sem mexer em nenhum outro slot)
         File.WriteAllText(GetPath(slotIndex), encrypted);
-
-        if (slotIndex != 0)
-        {
-            File.WriteAllText(GetPath(0), encrypted);
-        }
     }
 
     public SaveData LoadGame(int slotIndex)
     {
         if (!HasSave(slotIndex)) return null;
+        
         string encrypted = File.ReadAllText(GetPath(slotIndex));
         string json = EncryptDecrypt(encrypted);
-        SaveData data = JsonUtility.FromJson<SaveData>(json);
-
-        if (slotIndex != 0)
-        {
-            SaveGame(data, 0);
-        }
-
-        return data;
+        
+        // Apenas lê e retorna os dados, sem salvar nada por cima do Slot 0
+        return JsonUtility.FromJson<SaveData>(json);
     }
 
     private string EncryptDecrypt(string text)

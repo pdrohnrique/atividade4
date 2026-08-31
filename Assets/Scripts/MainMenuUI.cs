@@ -17,13 +17,19 @@ public class MainMenuUI : MonoBehaviour
 
     public void OnContinuePressed()
     {
+        // Apenas LÊ o Slot 0 sem gravar nada por cima!
         SaveData data = SaveSystem.Instance.LoadGame(0);
-        if (data != null) SceneManager.LoadScene(data.sceneName);
+        if (data != null)
+        {
+            LevelManager.currentDataToLoad = data;
+            SceneManager.LoadScene(data.sceneName);
+        }
     }
 
     public void OnNewGamePressed()
     {
-        SaveSystem.Instance.SaveGame(new SaveData { sceneName = "Fase1", currentCoins = 0, hasCheckpoint = false }, 0);
+        // Passa null para indicar jogo novo. O Slot 0 do Checkpoint fica intocado no disco!
+        LevelManager.currentDataToLoad = null;
         SceneManager.LoadScene("Fase1");
     }
 
@@ -36,7 +42,9 @@ public class MainMenuUI : MonoBehaviour
     {
         if (SaveSystem.Instance.HasSave(slotIndex))
         {
+            // Lê o Slot manual (1, 2 ou 3) e passa para a cena. NÃO MEXE no Slot 0!
             SaveData data = SaveSystem.Instance.LoadGame(slotIndex);
+            LevelManager.currentDataToLoad = data;
             SceneManager.LoadScene(data.sceneName);
         }
     }

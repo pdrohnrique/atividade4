@@ -2,10 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
+
+    // Variável temporária de memória para saber qual save carregar ao abrir a cena
+    public static SaveData currentDataToLoad = null;
 
     [Header("UI")]
     public TMP_Text coinText;
@@ -17,28 +21,35 @@ public class LevelManager : MonoBehaviour
 
     public int currentCoins { get; private set; }
     private List<string> collectedCoinIDs = new List<string>();
-    private SaveData currentSave;
+    private SaveData activeData;
     private string pendingNextScene;
     private bool waitingNextSceneInput = false;
 
     void Awake()
     {
         Instance = this;
+
+        // Pega os dados passados pelo Menu (seja Continuar, Slot 1/2/3 ou null para Novo Jogo)
+        activeData = currentDataToLoad;
+        currentDataToLoad = null; // Limpa a memória temporária
+
+        currentCoins = 0;
+
+        if (activeData != null && activeData.sceneName == SceneManager.GetActiveScene().name)
+        {
+            if (activeData.hasCheckpoint)
+            {
+                collectedCoinIDs = new List<string>(activeData.collectedCoinIDs);
+            }
+        }
     }
 
     void Start()
     {
-        currentSave = SaveSystem.Instance.LoadGame(0);
-        currentCoins = 0; // Moedas resetam no início da fase
-
-        if (currentSave != null && currentSave.sceneName == SceneManager.GetActiveScene().name)
+        if (activeData != null && activeData.sceneName == SceneManager.GetActiveScene().name && activeData.hasCheckpoint)
         {
-            if (currentSave.hasCheckpoint)
-            {
-                playerObj.transform.position = currentSave.playerPosition;
-                currentCoins = currentSave.currentCoins;
-                collectedCoinIDs = new List<string>(currentSave.collectedCoinIDs);
-            }
+            playerObj.transform.position = activeData.playerPosition;
+            currentCoins = activeData.currentCoins;
         }
 
         UpdateCoinUI();
@@ -47,7 +58,10 @@ public class LevelManager : MonoBehaviour
 
     void Update()
     {
-        if (waitingNextSceneInput && Input.anyKeyDown)
+        bool anyKeyPressed = Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
+        bool mouseClicked = Mouse.current != null && (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame);
+
+        if (waitingNextSceneInput && (anyKeyPressed || mouseClicked))
         {
             SceneManager.LoadScene(pendingNextScene);
         }
@@ -65,9 +79,10 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    // AQUI É O ÚNICO LUGAR DO PROJETO QUE GRAVA NO SLOT 0!
     public void ActivateCheckpoint(Vector3 pos)
     {
-        SaveData data = new SaveData
+        SaveData checkpointData = new SaveData
         {
             sceneName = SceneManager.GetActiveScene().name,
             playerPosition = pos,
@@ -75,7 +90,8 @@ public class LevelManager : MonoBehaviour
             collectedCoinIDs = new List<string>(collectedCoinIDs),
             hasCheckpoint = true
         };
-        SaveSystem.Instance.SaveGame(data, 0);
+
+        SaveSystem.Instance.SaveGame(checkpointData, 0);
     }
 
     public void TriggerVictory(string nextScene)
@@ -92,16 +108,7 @@ public class LevelManager : MonoBehaviour
                 victoryCoinText.text = $"Moedas: {currentCoins} / {totalCoins}";
         }
 
-        // Reseta o autosave para iniciar a próxima fase do zero
-        SaveData data = new SaveData
-        {
-            sceneName = nextScene,
-            playerPosition = Vector3.zero,
-            currentCoins = 0,
-            collectedCoinIDs = new List<string>(),
-            hasCheckpoint = false
-        };
-        SaveSystem.Instance.SaveGame(data, 0);
+        currentDataToLoad = null;
     }
 
     private void UpdateCoinUI()
@@ -114,10 +121,10 @@ public class LevelManager : MonoBehaviour
         return new SaveData
         {
             sceneName = SceneManager.GetActiveScene().name,
-            playerPosition = currentSave != null && currentSave.hasCheckpoint ? currentSave.playerPosition : playerObj.transform.position,
-            currentCoins = currentSave != null && currentSave.hasCheckpoint ? currentSave.currentCoins : 0,
+            playerPosition = playerObj.transform.position,
+            currentCoins = currentCoins,
             collectedCoinIDs = new List<string>(collectedCoinIDs),
-            hasCheckpoint = currentSave != null && currentSave.hasCheckpoint
+            hasCheckpoint = true
         };
     }
 }

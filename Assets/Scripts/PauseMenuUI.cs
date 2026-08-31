@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class PauseMenuUI : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class PauseMenuUI : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
         {
             if (isPaused) Resume();
             else Pause();
@@ -52,6 +53,7 @@ public class PauseMenuUI : MonoBehaviour
     {
         if (isSaving)
         {
+            // Salva APENAS no slot manual escolhido (1, 2 ou 3).
             SaveData data = LevelManager.Instance.GetCurrentStateData();
             SaveSystem.Instance.SaveGame(data, slotIndex);
             Resume();
@@ -60,7 +62,9 @@ public class PauseMenuUI : MonoBehaviour
         {
             if (SaveSystem.Instance.HasSave(slotIndex))
             {
+                // Carrega o slot manual escolhido sem alterar o Slot 0!
                 SaveData data = SaveSystem.Instance.LoadGame(slotIndex);
+                LevelManager.currentDataToLoad = data;
                 Time.timeScale = 1f;
                 SceneManager.LoadScene(data.sceneName);
             }
