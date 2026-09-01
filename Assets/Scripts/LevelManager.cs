@@ -16,21 +16,23 @@ public class LevelManager : MonoBehaviour
     [Header("Player")]
     public GameObject playerObj;
 
-    public int currentCoins { get; private set; }
+    public int CurrentCoins { get; private set; }
     private List<string> collectedCoinIDs = new List<string>();
     
     // Guarda os dados de como a fase começou ou do último checkpoint tocado
     private SaveData checkpointState; 
     
     private string pendingNextScene;
-    private bool waitingNextSceneInput = false;
+    private bool waitingNextSceneInput;
 
     void Awake()
     {
+        Time.timeScale = 1f;
+        
         Instance = this;
 
         SaveData data = SaveSystem.Instance.LoadGame(0);
-        currentCoins = 0;
+        CurrentCoins = 0;
 
         if (data != null && data.sceneName == SceneManager.GetActiveScene().name)
         {
@@ -64,7 +66,7 @@ public class LevelManager : MonoBehaviour
             {
                 playerObj.transform.position = checkpointState.playerPosition;
             }
-            currentCoins = checkpointState.currentCoins;
+            CurrentCoins = checkpointState.currentCoins;
         }
 
         UpdateCoinUI();
@@ -89,7 +91,7 @@ public class LevelManager : MonoBehaviour
         if (!collectedCoinIDs.Contains(id))
         {
             collectedCoinIDs.Add(id);
-            currentCoins++;
+            CurrentCoins++;
             UpdateCoinUI();
         }
     }
@@ -101,7 +103,7 @@ public class LevelManager : MonoBehaviour
         {
             sceneName = SceneManager.GetActiveScene().name,
             playerPosition = pos,
-            currentCoins = currentCoins,
+            currentCoins = CurrentCoins,
             collectedCoinIDs = new List<string>(collectedCoinIDs),
             hasCheckpoint = true
         };
@@ -116,12 +118,12 @@ public class LevelManager : MonoBehaviour
         pendingNextScene = nextScene;
         waitingNextSceneInput = true;
 
-        int totalCoins = FindObjectsByType<Coin>(FindObjectsSortMode.None).Length + collectedCoinIDs.Count;
+        int totalCoins = FindObjectsByType<Coin>(FindObjectsInactive.Exclude).Length + collectedCoinIDs.Count;
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(true);
             if (victoryCoinText != null) 
-                victoryCoinText.text = $"Moedas: {currentCoins} / {totalCoins}";
+                victoryCoinText.text = $"Moedas: {CurrentCoins} / {totalCoins}";
         }
 
         // Save para a próxima fase zerando as moedas e removendo o checkpoint
@@ -143,6 +145,6 @@ public class LevelManager : MonoBehaviour
 
     private void UpdateCoinUI()
     {
-        if (coinText != null) coinText.text = $"Moedas: {currentCoins}";
+        if (coinText != null) coinText.text = $"Moedas: {CurrentCoins}";
     }
 }

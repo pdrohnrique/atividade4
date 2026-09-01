@@ -7,8 +7,8 @@ public class PauseMenuUI : MonoBehaviour
     public GameObject pausePanel;
     public GameObject slotsPanel;
     
-    private bool isSaving = false;
-    private bool isPaused = false;
+    private bool isSaving;
+    private bool isPaused;
 
     void Update()
     {
@@ -27,7 +27,7 @@ public class PauseMenuUI : MonoBehaviour
         isPaused = false;
     }
 
-    public void Pause()
+    private void Pause()
     {
         pausePanel.SetActive(true);
         slotsPanel.SetActive(false);

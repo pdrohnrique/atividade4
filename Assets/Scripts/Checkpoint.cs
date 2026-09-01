@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Checkpoint : MonoBehaviour
 {
-    private bool activated = false;
+    private bool activated;
 
     private void OnTriggerEnter(Collider other)
     {
