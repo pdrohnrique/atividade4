@@ -53,8 +53,8 @@ public class PauseMenuUI : MonoBehaviour
     {
         if (isSaving)
         {
-            // Salva APENAS no slot manual escolhido (1, 2 ou 3).
-            SaveData data = LevelManager.Instance.GetCurrentStateData();
+            // Pega os dados de checkpoint e salva. O SaveSystem já replica para o Slot 0 automaticamente.
+            SaveData data = LevelManager.Instance.GetStateToSave();
             SaveSystem.Instance.SaveGame(data, slotIndex);
             Resume();
         }
@@ -62,9 +62,8 @@ public class PauseMenuUI : MonoBehaviour
         {
             if (SaveSystem.Instance.HasSave(slotIndex))
             {
-                // Carrega o slot manual escolhido sem alterar o Slot 0!
+                // Lê o slot escolhido. O SaveSystem já sobrescreve o Slot 0 automaticamente.
                 SaveData data = SaveSystem.Instance.LoadGame(slotIndex);
-                LevelManager.currentDataToLoad = data;
                 Time.timeScale = 1f;
                 SceneManager.LoadScene(data.sceneName);
             }

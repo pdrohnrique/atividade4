@@ -21,9 +21,13 @@ public class SaveSystem : MonoBehaviour
     {
         string json = JsonUtility.ToJson(data);
         string encrypted = EncryptDecrypt(json);
-        
-        // Salva ESTRITAMENTE no slotIndex passado (sem mexer em nenhum outro slot)
         File.WriteAllText(GetPath(slotIndex), encrypted);
+
+        // REGRA DO PROFESSOR: Salvar em slot manual deve replicar no Slot 0
+        if (slotIndex != 0)
+        {
+            File.WriteAllText(GetPath(0), encrypted);
+        }
     }
 
     public SaveData LoadGame(int slotIndex)
@@ -32,9 +36,15 @@ public class SaveSystem : MonoBehaviour
         
         string encrypted = File.ReadAllText(GetPath(slotIndex));
         string json = EncryptDecrypt(encrypted);
-        
-        // Apenas lê e retorna os dados, sem salvar nada por cima do Slot 0
-        return JsonUtility.FromJson<SaveData>(json);
+        SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+        // REGRA DO PROFESSOR: Carregar um slot manual deve sobrescrever o Slot 0 com esses dados
+        if (slotIndex != 0)
+        {
+            SaveGame(data, 0);
+        }
+
+        return data;
     }
 
     private string EncryptDecrypt(string text)

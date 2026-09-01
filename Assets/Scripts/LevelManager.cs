@@ -8,9 +8,6 @@ public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
 
-    // Variável temporária de memória para saber qual save carregar ao abrir a cena
-    public static SaveData currentDataToLoad = null;
-
     [Header("UI")]
     public TMP_Text coinText;
     public GameObject victoryPanel;
@@ -21,7 +18,10 @@ public class LevelManager : MonoBehaviour
 
     public int currentCoins { get; private set; }
     private List<string> collectedCoinIDs = new List<string>();
-    private SaveData activeData;
+    
+    // Guarda os dados de como a fase começou ou do último checkpoint tocado
+    private SaveData checkpointState; 
+    
     private string pendingNextScene;
     private bool waitingNextSceneInput = false;
 
@@ -29,27 +29,42 @@ public class LevelManager : MonoBehaviour
     {
         Instance = this;
 
-        // Pega os dados passados pelo Menu (seja Continuar, Slot 1/2/3 ou null para Novo Jogo)
-        activeData = currentDataToLoad;
-        currentDataToLoad = null; // Limpa a memória temporária
-
+        SaveData data = SaveSystem.Instance.LoadGame(0);
         currentCoins = 0;
 
-        if (activeData != null && activeData.sceneName == SceneManager.GetActiveScene().name)
+        if (data != null && data.sceneName == SceneManager.GetActiveScene().name)
         {
-            if (activeData.hasCheckpoint)
+            checkpointState = data;
+            if (data.hasCheckpoint)
             {
-                collectedCoinIDs = new List<string>(activeData.collectedCoinIDs);
+                collectedCoinIDs = new List<string>(data.collectedCoinIDs);
             }
+        }
+        else
+        {
+            // Se for fase nova ou novo jogo, cria o estado inicial com base na posição atual na Unity
+            checkpointState = new SaveData
+            {
+                sceneName = SceneManager.GetActiveScene().name,
+                playerPosition = playerObj != null ? playerObj.transform.position : Vector3.zero,
+                currentCoins = 0,
+                collectedCoinIDs = new List<string>(),
+                hasCheckpoint = false
+            };
         }
     }
 
     void Start()
     {
-        if (activeData != null && activeData.sceneName == SceneManager.GetActiveScene().name && activeData.hasCheckpoint)
+        // SÓ altera a posição do player se o save realmente tiver um CHECKPOINT ATIVO.
+        // Se for NOVO JOGO (hasCheckpoint == false), o player se mantém na posição original do novo layout.
+        if (checkpointState != null && checkpointState.hasCheckpoint)
         {
-            playerObj.transform.position = activeData.playerPosition;
-            currentCoins = activeData.currentCoins;
+            if (playerObj != null)
+            {
+                playerObj.transform.position = checkpointState.playerPosition;
+            }
+            currentCoins = checkpointState.currentCoins;
         }
 
         UpdateCoinUI();
@@ -79,10 +94,10 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    // AQUI É O ÚNICO LUGAR DO PROJETO QUE GRAVA NO SLOT 0!
     public void ActivateCheckpoint(Vector3 pos)
     {
-        SaveData checkpointData = new SaveData
+        // Atualiza o estado gravado com a posição do checkpoint atingido
+        checkpointState = new SaveData
         {
             sceneName = SceneManager.GetActiveScene().name,
             playerPosition = pos,
@@ -91,7 +106,8 @@ public class LevelManager : MonoBehaviour
             hasCheckpoint = true
         };
 
-        SaveSystem.Instance.SaveGame(checkpointData, 0);
+        // Autosave no Slot 0 ao tocar no checkpoint
+        SaveSystem.Instance.SaveGame(checkpointState, 0);
     }
 
     public void TriggerVictory(string nextScene)
@@ -108,23 +124,25 @@ public class LevelManager : MonoBehaviour
                 victoryCoinText.text = $"Moedas: {currentCoins} / {totalCoins}";
         }
 
-        currentDataToLoad = null;
+        // Save para a próxima fase zerando as moedas e removendo o checkpoint
+        SaveData nextLevelData = new SaveData
+        {
+            sceneName = nextScene,
+            playerPosition = Vector3.zero,
+            currentCoins = 0,
+            collectedCoinIDs = new List<string>(),
+            hasCheckpoint = false
+        };
+        SaveSystem.Instance.SaveGame(nextLevelData, 0);
+    }
+
+    public SaveData GetStateToSave()
+    {
+        return checkpointState;
     }
 
     private void UpdateCoinUI()
     {
         if (coinText != null) coinText.text = $"Moedas: {currentCoins}";
-    }
-
-    public SaveData GetCurrentStateData()
-    {
-        return new SaveData
-        {
-            sceneName = SceneManager.GetActiveScene().name,
-            playerPosition = playerObj.transform.position,
-            currentCoins = currentCoins,
-            collectedCoinIDs = new List<string>(collectedCoinIDs),
-            hasCheckpoint = true
-        };
     }
 }
