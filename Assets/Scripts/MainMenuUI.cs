@@ -67,6 +67,11 @@ public class MainMenuUI : MonoBehaviour
         if (slotsPanel != null) slotsPanel.SetActive(true);
     }
 
+    public void CloseLoadGame()
+    {
+        if  (slotsPanel != null) slotsPanel.SetActive(false);
+    }
+
     public void SelectSlotToLoad(int slotIndex)
     {
         if (SaveSystem.Instance.HasSave(slotIndex))
@@ -78,6 +83,12 @@ public class MainMenuUI : MonoBehaviour
 
     public void OnExitPressed()
     {
-        Application.Quit();
+        #if UNITY_EDITOR
+                // Interrompe o modo de jogo no Editor
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                // Sair do jogo na build final
+                Application.Quit();
+        #endif
     }
 }

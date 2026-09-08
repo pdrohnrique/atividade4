@@ -12,7 +12,7 @@ public class PauseMenuUI : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isPaused) Resume();
             else Pause();
@@ -33,6 +33,13 @@ public class PauseMenuUI : MonoBehaviour
         slotsPanel.SetActive(false);
         Time.timeScale = 0f;
         isPaused = true;
+    }
+
+    public void CloseSaveSlots()
+    {
+        isSaving = false;
+        pausePanel.SetActive(true);
+        slotsPanel.SetActive(false);
     }
 
     public void OpenSaveSlots()
